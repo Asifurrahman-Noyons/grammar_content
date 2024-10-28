@@ -41,192 +41,226 @@
     </div>
 
     <script>
-        const backButton = document.getElementById("backButton");
-        const navTitle = document.getElementById("navTitle");
-        const itemList = document.getElementById("itemList");
-        const contentDisplay = document.getElementById("contentDisplay");
+    const backButton = document.getElementById("backButton");
+const navTitle = document.getElementById("navTitle");
+const itemList = document.getElementById("itemList");
+const contentDisplay = document.getElementById("contentDisplay");
 
-        let currentView = "items";
-        let currentSubItem = null;
-        let currentSubItems = [];
-        let currentItemTitle = "";
+let currentView = "items";
+let currentSubItem = null;
+let currentSubItems = [];
+let currentItemTitle = "";
 
-        const items = [
-            { id: "1", title: "Nouns", subItems: [
-                { title: "Common Nouns", content: [
-                    { title: "Definition", paragraphs: "Common nouns refer to general items, not specific names.", bullets: ["Example 1: book", "Example 2: city"], completed: false },
-                    { title: "Usage", paragraphs: "Common nouns are used in sentences without specifying.", bullets: ["The dog barked.", "She visited a city."], completed: false }
-                ] }
-            ]},
-            { id: "2", title: "Verbs", subItems: [
-                { title: "Action Verbs", content: [
-                    { title: "Definition", paragraphs: "Action verbs describe physical or mental actions.", bullets: ["run", "jump", "think"], completed: false },
-                    { title: "Examples", paragraphs: "Examples of action verbs include:", bullets: ["swim", "dance", "write"], completed: false }
-                ] }
-            ]}
-        ];
+const items = [
+    { id: "1", title: "Nouns", subItems: [
+        { title: "Common Nouns", content: [
+            { title: "Definition", paragraphs: "Common nouns refer to general items, not specific names.", bullets: ["Example 1: book", "Example 2: city"], completed: false },
+            { title: "Usage", paragraphs: "Common nouns are used in sentences without specifying.", bullets: ["The dog barked.", "She visited a city."], completed: false }
+        ] }
+    ]},
+    { id: "2", title: "Verbs", subItems: [
+        { title: "Action Verbs", content: [
+            { title: "Definition", paragraphs: "Action verbs describe physical or mental actions.", bullets: ["run", "jump", "think"], completed: false },
+            { title: "Examples", paragraphs: "Examples of action verbs include:", bullets: ["swim", "dance", "write"], completed: false }
+        ] }
+    ]}
+];
 
-        renderItems(items);
-
-        function renderItems(items) {
-            itemList.innerHTML = "";
-            currentView = "items";
-            navTitle.textContent = "Item List"; 
-            backButton.classList.add("hidden");
-            contentDisplay.classList.add("hidden");
-
-            items.forEach(item => {
-                const completedContentCount = item.subItems.flatMap(subItem => subItem.content).filter(content => content.completed).length;
-                const totalContentCount = item.subItems.flatMap(subItem => subItem.content).length;
-                const progressPercentage = Math.round((completedContentCount / totalContentCount) * 100) || 0;
-
-                const itemDiv = document.createElement("div");
-                itemDiv.classList.add("flex", "items-center", "justify-between", "p-4", "border", "rounded-lg", "bg-white", "shadow-md", "hover:shadow-lg", "cursor-pointer", "fade-in");
-
-                const progressCircle = document.createElement("div");
-                progressCircle.classList.add("flex", "items-center", "justify-center", "w-10", "h-10", "rounded-full", "bg-gray-200", "text-indigo-600", "font-bold");
-                
-                if (progressPercentage === 100) {
-                    progressCircle.innerHTML = `
-                        <div class="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full scale-in">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7" />
-                            </svg>
-                        </div>
-                    `;
-                } else {
-                    progressCircle.textContent = `${progressPercentage}%`;
+// Load saved progress from local storage
+function loadProgress() {
+    const savedProgress = JSON.parse(localStorage.getItem('grammarAppProgress')) || {};
+    items.forEach(item => {
+        item.subItems.forEach(subItem => {
+            subItem.content.forEach(content => {
+                const key = `${item.id}-${subItem.title}-${content.title}`;
+                if (savedProgress[key]) {
+                    content.completed = savedProgress[key];
                 }
-
-                const title = document.createElement("div");
-                title.classList.add("flex-grow", "ml-4", "font-semibold", "text-lg", "text-gray-800");
-                title.textContent = item.title;
-
-                const arrow = document.createElement("div");
-                arrow.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7" />
-                    </svg>
-                `;
-
-                itemDiv.appendChild(progressCircle);
-                itemDiv.appendChild(title);
-                itemDiv.appendChild(arrow);
-                itemList.appendChild(itemDiv);
-
-                itemDiv.addEventListener("click", () => {
-                    currentItemTitle = item.title; 
-                    renderSubItems(item.subItems);
-                });
             });
-
-            setTimeout(() => {
-                itemList.querySelectorAll('.fade-in').forEach(el => el.classList.add('show'));
-            }, 10);
-        }
-
-        function renderSubItems(subItems) {
-            itemList.innerHTML = "";
-            currentView = "subItems";
-            navTitle.textContent = currentItemTitle; 
-            currentSubItems = subItems; 
-            backButton.classList.remove("hidden");
-            contentDisplay.classList.add("hidden");
-
-            subItems.forEach((subItem, index) => {
-                const subItemDiv = document.createElement("div");
-                subItemDiv.classList.add("flex", "items-center", "justify-between", "p-4", "border", "rounded-lg", "bg-gray-100", "shadow-md", "cursor-pointer", "fade-in");
-
-                const numberCircle = document.createElement("div");
-                numberCircle.classList.add("flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full", "bg-green-500", "text-white", "font-bold");
-                numberCircle.textContent = index + 1;
-
-                const title = document.createElement("div");
-                title.classList.add("flex-grow", "ml-4", "text-lg", "font-medium");
-                title.textContent = subItem.title;
-
-                const arrow = document.createElement("div");
-                arrow.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7" />
-                    </svg>
-                `;
-
-                subItemDiv.appendChild(numberCircle);
-                subItemDiv.appendChild(title);
-                subItemDiv.appendChild(arrow);
-                itemList.appendChild(subItemDiv);
-
-                subItemDiv.addEventListener("click", () => {
-                    currentSubItem = subItem;
-                    showContent(subItem.content);
-                });
-            });
-
-            setTimeout(() => {
-                itemList.querySelectorAll('.fade-in').forEach(el => el.classList.add('show'));
-            }, 10);
-        }
-
-        function showContent(contentArray) {
-            currentView = "content";
-            itemList.innerHTML = "";
-            navTitle.textContent = currentSubItem.title; 
-            contentDisplay.classList.remove("hidden");
-            contentDisplay.innerHTML = renderStyledContent(contentArray);
-            backButton.classList.remove("hidden");
-        }
-
-        function renderStyledContent(contentArray) {
-            let htmlContent = '<div class="space-y-6">';
-
-            contentArray.forEach((item, index) => {
-                htmlContent += `
-                    <div class="border rounded-lg p-6 bg-white shadow">
-                        <h2 class="text-xl font-bold">${item.title}</h2>
-                        <p class="text-gray-700">${item.paragraphs}</p>
-                        <ul class="list-disc pl-6 text-gray-600">
-                            ${item.bullets.map(bullet => `<li>${bullet}</li>`).join('')}
-                        </ul>
-                        <label class="flex items-center mt-4">
-                            <input type="checkbox" class="mr-2" onchange="updateProgress(this, ${index})" ${item.completed ? 'checked' : ''}>
-                            Mark as Complete
-                        </label>
-                    </div>
-                `;
-            });
-
-            htmlContent += '</div>';
-            return htmlContent;
-        }
-
-        function updateProgress(checkbox, contentIndex) {
-            currentSubItem.content[contentIndex].completed = checkbox.checked;
-            const completedCount = currentSubItem.content.filter(content => content.completed).length;
-            const totalCount = currentSubItem.content.length;
-            const progressPercentage = Math.round((completedCount / totalCount) * 100) || 0;
-
-            const itemDiv = itemList.children[0]; // Reference the progress circle of the first item
-            itemDiv.querySelector('div').textContent = `${progressPercentage}%`; // Update percentage
-
-            if (progressPercentage === 100) {
-                itemDiv.querySelector('div').innerHTML = `
-                    <div class="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full scale-in">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7" />
-                        </svg>
-                    </div>
-                `;
-            }
-        }
-
-        backButton.addEventListener("click", () => {
-            if (currentView === "subItems") {
-                renderItems(items);
-            } else if (currentView === "content") {
-                renderSubItems(currentSubItems);
-            }
         });
+    });
+}
+
+// Save progress to local storage
+function saveProgress() {
+    const progressToSave = {};
+    items.forEach(item => {
+        item.subItems.forEach(subItem => {
+            subItem.content.forEach(content => {
+                const key = `${item.id}-${subItem.title}-${content.title}`;
+                progressToSave[key] = content.completed;
+            });
+        });
+    });
+    localStorage.setItem('grammarAppProgress', JSON.stringify(progressToSave));
+}
+
+// Initialize app
+loadProgress();
+renderItems(items);
+
+function renderItems(items) {
+    itemList.innerHTML = "";
+    currentView = "items";
+    navTitle.textContent = "Item List"; 
+    backButton.classList.add("hidden");
+    contentDisplay.classList.add("hidden");
+
+    items.forEach(item => {
+        const completedContentCount = item.subItems.flatMap(subItem => subItem.content).filter(content => content.completed).length;
+        const totalContentCount = item.subItems.flatMap(subItem => subItem.content).length;
+        const progressPercentage = Math.round((completedContentCount / totalContentCount) * 100) || 0;
+
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("flex", "items-center", "justify-between", "p-4", "border", "rounded-lg", "bg-white", "shadow-md", "hover:shadow-lg", "cursor-pointer", "fade-in");
+
+        const progressCircle = document.createElement("div");
+        progressCircle.classList.add("flex", "items-center", "justify-center", "w-10", "h-10", "rounded-full", "bg-gray-200", "text-indigo-600", "font-bold");
+        
+        if (progressPercentage === 100) {
+            progressCircle.innerHTML = `
+                <div class="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full scale-in">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7" />
+                    </svg>
+                </div>
+            `;
+        } else {
+            progressCircle.textContent = `${progressPercentage}%`;
+        }
+
+        const title = document.createElement("div");
+        title.classList.add("flex-grow", "ml-4", "font-semibold", "text-lg", "text-gray-800");
+        title.textContent = item.title;
+
+        const arrow = document.createElement("div");
+        arrow.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7" />
+            </svg>
+        `;
+
+        itemDiv.appendChild(progressCircle);
+        itemDiv.appendChild(title);
+        itemDiv.appendChild(arrow);
+        itemList.appendChild(itemDiv);
+
+        itemDiv.addEventListener("click", () => {
+            currentItemTitle = item.title; 
+            renderSubItems(item.subItems);
+        });
+    });
+
+    setTimeout(() => {
+        itemList.querySelectorAll('.fade-in').forEach(el => el.classList.add('show'));
+    }, 10);
+}
+
+function renderSubItems(subItems) {
+    itemList.innerHTML = "";
+    currentView = "subItems";
+    navTitle.textContent = currentItemTitle; 
+    currentSubItems = subItems; 
+    backButton.classList.remove("hidden");
+    contentDisplay.classList.add("hidden");
+
+    subItems.forEach((subItem, index) => {
+        const subItemDiv = document.createElement("div");
+        subItemDiv.classList.add("flex", "items-center", "justify-between", "p-4", "border", "rounded-lg", "bg-gray-100", "shadow-md", "cursor-pointer", "fade-in");
+
+        const numberCircle = document.createElement("div");
+        numberCircle.classList.add("flex", "items-center", "justify-center", "w-8", "h-8", "rounded-full", "bg-green-500", "text-white", "font-bold");
+        numberCircle.textContent = index + 1;
+
+        const title = document.createElement("div");
+        title.classList.add("flex-grow", "ml-4", "text-lg", "font-medium");
+        title.textContent = subItem.title;
+
+        const arrow = document.createElement("div");
+        arrow.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7" />
+            </svg>
+        `;
+
+        subItemDiv.appendChild(numberCircle);
+        subItemDiv.appendChild(title);
+        subItemDiv.appendChild(arrow);
+        itemList.appendChild(subItemDiv);
+
+        subItemDiv.addEventListener("click", () => {
+            currentSubItem = subItem;
+            showContent(subItem.content);
+        });
+    });
+
+    setTimeout(() => {
+        itemList.querySelectorAll('.fade-in').forEach(el => el.classList.add('show'));
+    }, 10);
+}
+
+function showContent(contentArray) {
+    currentView = "content";
+    itemList.innerHTML = "";
+    navTitle.textContent = currentSubItem.title; 
+    contentDisplay.classList.remove("hidden");
+    contentDisplay.innerHTML = renderStyledContent(contentArray);
+    backButton.classList.remove("hidden");
+}
+
+function renderStyledContent(contentArray) {
+    let htmlContent = '<div class="space-y-6">';
+
+    contentArray.forEach((item, index) => {
+        htmlContent += `
+            <div class="border rounded-lg p-6 bg-white shadow">
+                <h2 class="text-xl font-bold">${item.title}</h2>
+                <p class="text-gray-700">${item.paragraphs}</p>
+                <ul class="list-disc pl-6 text-gray-600">
+                    ${item.bullets.map(bullet => `<li>${bullet}</li>`).join('')}
+                </ul>
+                <label class="flex items-center mt-4">
+                    <input type="checkbox" class="mr-2" onchange="updateProgress(this, ${index})" ${item.completed ? 'checked' : ''}>
+                    Mark as Complete
+                </label>
+            </div>
+        `;
+    });
+
+    htmlContent += '</div>';
+    return htmlContent;
+}
+
+function updateProgress(checkbox, contentIndex) {
+    currentSubItem.content[contentIndex].completed = checkbox.checked;
+    saveProgress(); // Save progress on checkbox change
+
+    const completedCount = currentSubItem.content.filter(content => content.completed).length;
+    const totalCount = currentSubItem.content.length;
+    const progressPercentage = Math.round((completedCount / totalCount) * 100) || 0;
+    
+    const itemDiv = itemList.children[0]; // Reference the progress circle of the first item
+    itemDiv.querySelector('div').textContent = `${progressPercentage}%`; // Update percentage
+
+    if (progressPercentage === 100) {
+        itemDiv.querySelector('div').innerHTML = `
+            <div class="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full scale-in">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l5 5L20 7" />
+                </svg>
+            </div>
+        `;
+    }
+}
+
+backButton.addEventListener("click", () => {
+    if (currentView === "subItems") {
+        renderItems(items);
+    } else if (currentView === "content") {
+        renderSubItems(currentSubItems);
+    }
+});
+
     </script>
 </body>
 </html>
